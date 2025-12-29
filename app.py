@@ -1,17 +1,23 @@
 import streamlit as st
 import spacy
+import subprocess
+import sys
 
 st.title("Named Entity Recognition (NER) App")
 
 @st.cache_resource
-def load_model():
-    return spacy.load("en_core_web_sm")
+def load_spacy_model():
+    try:
+        return spacy.load("en_core_web_sm")
+    except:
+        # Install model if not present
+        subprocess.run(
+            [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
+            check=True
+        )
+        return spacy.load("en_core_web_sm")
 
-try:
-    nlp = load_model()
-except Exception as e:
-    st.error("spaCy model not loaded properly.")
-    st.stop()
+nlp = load_spacy_model()
 
 text = st.text_area(
     "Enter text",
