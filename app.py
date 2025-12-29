@@ -1,36 +1,30 @@
 import streamlit as st
 import spacy
-import subprocess
-import sys
 
-st.title("Named Entity Recognition (NER) App")
-
+# Load the model
+# We use st.cache_resource so the model only loads once, making the app faster
 @st.cache_resource
-def load_spacy_model():
-    try:
-        return spacy.load("en_core_web_sm")
-    except:
-        # Install model if not present
-        subprocess.run(
-            [sys.executable, "-m", "spacy", "download", "en_core_web_sm"],
-            check=True
-        )
-        return spacy.load("en_core_web_sm")
+def load_model():
+    return spacy.load("en_core_web_sm")
 
-nlp = load_spacy_model()
+nlp = load_model()
 
-text = st.text_area(
-    "Enter text",
-    "Virat Kohli was born in Delhi and plays cricket for India"
-)
+st.title("Named Entity Recognizer")
+st.write("Enter text below to extract entities like names, locations, and organizations.")
+
+# User Input
+user_input = st.text_area("Input Text", "Virat Kohli was born in Delhi and plays cricket for India")
 
 if st.button("Extract Entities"):
-    doc = nlp(text)
-
-    if doc.ents:
-        for ent in doc.ents:
-            st.write(f"**Entity:** {ent.text}")
-            st.write(f"**Label:** {ent.label_}")
-            st.write("---")
+    doc = nlp(user_input)
+    
+    if not doc.ents:
+        st.write("No entities found.")
     else:
-        st.warning("No entities found")
+        # Display in a nice table
+        data = [{"Entity": ent.text, "Label": ent.label_} for ent in doc.ents]
+        st.table(data)
+        
+        # Also print to logs for debugging
+        for ent in doc.ents:
+            st.write(f"**{ent.text}** is a `{ent.label_}`")
