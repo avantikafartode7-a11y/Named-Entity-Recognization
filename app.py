@@ -1,30 +1,28 @@
 import streamlit as st
 import spacy
 
-# Load the model
-# We use st.cache_resource so the model only loads once, making the app faster
+# 1. Load the model with caching to prevent reloading on every click
 @st.cache_resource
-def load_model():
+def load_nlp():
     return spacy.load("en_core_web_sm")
 
-nlp = load_model()
+nlp = load_nlp()
 
-st.title("Named Entity Recognizer")
-st.write("Enter text below to extract entities like names, locations, and organizations.")
+# 2. Streamlit UI
+st.title("🏃‍♂️ Cricket Entity Extractor")
+st.write("Enter a sentence to identify names, places, and organizations.")
 
-# User Input
-user_input = st.text_area("Input Text", "Virat Kohli was born in Delhi and plays cricket for India")
+# Text input
+default_text = "Virat Kohli was born in Delhi and plays cricket for India"
+user_text = st.text_area("Input Text:", value=default_text)
 
 if st.button("Extract Entities"):
-    doc = nlp(user_input)
+    doc = nlp(user_text)
     
-    if not doc.ents:
-        st.write("No entities found.")
-    else:
-        # Display in a nice table
-        data = [{"Entity": ent.text, "Label": ent.label_} for ent in doc.ents]
-        st.table(data)
-        
-        # Also print to logs for debugging
+    if len(doc.ents) > 0:
+        st.subheader("Results:")
+        # Display results in a clean format
         for ent in doc.ents:
-            st.write(f"**{ent.text}** is a `{ent.label_}`")
+            st.write(f"**Entity:** `{ent.text}`  →  **Label:** `{ent.label_}` ({spacy.explain(ent.label_)})")
+    else:
+        st.warning("No entities found in this text.")
