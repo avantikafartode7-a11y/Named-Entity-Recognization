@@ -1,26 +1,30 @@
 import streamlit as st
 import spacy
 
-# Load spaCy model
-nlp = spacy.load("en_core_web_sm")
-
 st.title("Named Entity Recognition (NER) App")
-st.write("Enter a sentence to extract named entities using spaCy")
 
-# Text input
-txt = st.text_area(
-    "Enter text:",
+@st.cache_resource
+def load_model():
+    return spacy.load("en_core_web_sm")
+
+try:
+    nlp = load_model()
+except Exception as e:
+    st.error("spaCy model not loaded properly.")
+    st.stop()
+
+text = st.text_area(
+    "Enter text",
     "Virat Kohli was born in Delhi and plays cricket for India"
 )
 
 if st.button("Extract Entities"):
-    result = nlp(txt)
+    doc = nlp(text)
 
-    if result.ents:
-        st.subheader("Extracted Entities:")
-        for ent in result.ents:
+    if doc.ents:
+        for ent in doc.ents:
             st.write(f"**Entity:** {ent.text}")
             st.write(f"**Label:** {ent.label_}")
             st.write("---")
     else:
-        st.warning("No entities found.")
+        st.warning("No entities found")
